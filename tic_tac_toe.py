@@ -57,7 +57,7 @@ def computer_first_choice(users_first_turn, computer_symbol):
         if computer_symbol == 'X':
             computer_choice = 9
         else:
-            computer_choice = random.choice(reference_board)
+            computer_choice = random.choice(odd_move)
     replace_element(computer_choice, computer_symbol)
     return computer_choice
 
@@ -87,8 +87,9 @@ def computer_second_choice(users_first_turn, users_second_turn, computer_first_t
                     replace_number = [i for i in sublist if i != computer_first_turn if i in reference_board]
                     if len(replace_number) == 2:
                         if users_first_turn % 2 != 0 and users_second_turn % 2 != 0:
-                            replace_element(6, computer_symbol)
-                            return True, 6
+                            move_to = random.choice(replace_number)
+                            replace_element(move_to, computer_symbol)
+                            return True, move_to
                         else:
                             print("replace_number", replace_number)
                             for position in replace_number:
