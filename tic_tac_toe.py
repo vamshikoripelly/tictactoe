@@ -17,93 +17,68 @@ def replace_element(index, selection):
     reference_board.remove(index)
 
 
-def computer_first_choice(users_first_turn, computer_symbol):
+def computers_pick(users_first_turn, computer_symbol, users_second_turn=None, computer_first_turn=None):
     print("Computers Turn")
-    odd_move = [1, 3, 7, 9]
-    computer_choice = None
-    if users_first_turn % 2 == 0:
-        if users_first_turn == 2:
-            temp_list = [1, 3]
-            random.shuffle(temp_list)
-            for i in temp_list:
-                if i in reference_board:
-                    computer_choice = i
-                    break
-        elif users_first_turn == 4:
-            temp_list = [1, 7]
-            random.shuffle(temp_list)
-            for i in temp_list:
-                if i in reference_board:
-                    computer_choice = i
-                    break
-        elif users_first_turn == 6:
-            temp_list = [9, 3]
-            random.shuffle(temp_list)
-            for i in temp_list:
-                if i in reference_board:
-                    computer_choice = i
-                    break
+    if users_second_turn is not None or computer_first_turn is not None:
+        local_list = [users_first_turn, users_second_turn]
+        possible_lines = []
+        for sublist in COMBINATION:
+            if users_first_turn in sublist and users_second_turn in sublist and computer_first_turn not in sublist:
+                replace_number = [i for i in sublist if i not in local_list][0]
+                if replace_number in reference_board:
+                    replace_element(replace_number, computer_symbol)
+                    return True, replace_number
+            elif (users_first_turn in sublist or users_second_turn in sublist) and computer_first_turn not in sublist:
+                possible_lines.append(sublist)
         else:
-            temp_list = [7, 9]
-            random.shuffle(temp_list)
-            for i in temp_list:
-                if i in reference_board:
-                    computer_choice = i
-                    break
-    elif users_first_turn in odd_move:
-        if 5 in reference_board:
-            computer_choice = 5
-    else:
-        if computer_symbol == 'X':
-            computer_choice = 9
-        else:
-            computer_choice = random.choice(odd_move)
-    replace_element(computer_choice, computer_symbol)
-    return computer_choice
-
-
-def computer_second_choice(users_first_turn, users_second_turn, computer_first_turn, computer_symbol):
-    print("Computers Turn")
-    local_list = [users_first_turn, users_second_turn]
-    possible_lines = []
-    for sublist in COMBINATION:
-        if users_first_turn in sublist and users_second_turn in sublist and computer_first_turn not in sublist:
-            replace_number = [i for i in sublist if i not in local_list][0]
-            if replace_number in reference_board:
+            # print("possible_lines", possible_lines)
+            if 5 in reference_board:
+                replace_number = 5
                 replace_element(replace_number, computer_symbol)
                 return True, replace_number
-        elif (users_first_turn in sublist or users_second_turn in sublist) and computer_first_turn not in sublist:
-            possible_lines.append(sublist)
-    else:
-        # print("possible_lines", possible_lines)
-        if 5 in reference_board:
-            replace_number = 5
-            replace_element(replace_number, computer_symbol)
-            return True, replace_number
-        else:
-            for sublist in COMBINATION:
-                if users_first_turn not in sublist and users_second_turn not in sublist and computer_first_turn in \
-                        sublist:
-                    replace_number = [i for i in sublist if i != computer_first_turn if i in reference_board]
-                    if len(replace_number) == 2:
-                        if users_first_turn % 2 != 0 and users_second_turn % 2 != 0:
-                            move_to = random.choice(replace_number)
-                            replace_element(move_to, computer_symbol)
-                            return True, move_to
-                        else:
-                            print("replace_number", replace_number)
-                            for position in replace_number:
-                                occurrence = 0
-                                for row in possible_lines:
-                                    if position in row:
-                                        occurrence += 1
-                                        if occurrence == 2:
-                                            replace_element(position, computer_symbol)
-                                            return True, position
             else:
-                replace_number = reference_board[0]
-                replace_element(replace_number, computer_symbol)
-                return True, replace_number
+                for sublist in COMBINATION:
+                    if users_first_turn not in sublist and users_second_turn not in sublist and computer_first_turn in \
+                            sublist:
+                        replace_number = [i for i in sublist if i != computer_first_turn if i in reference_board]
+                        if len(replace_number) == 2:
+                            if users_first_turn % 2 != 0 and users_second_turn % 2 != 0:
+                                move_to = random.choice(replace_number)
+                                replace_element(move_to, computer_symbol)
+                                return True, move_to
+                            else:
+                                print("replace_number", replace_number)
+                                for position in replace_number:
+                                    occurrence = 0
+                                    for row in possible_lines:
+                                        if position in row:
+                                            occurrence += 1
+                                            if occurrence == 2:
+                                                replace_element(position, computer_symbol)
+                                                return True, position
+                else:
+                    replace_number = reference_board[0]
+                    replace_element(replace_number, computer_symbol)
+                    return True, replace_number
+    else:
+        move_dict = {2: [1, 3], 4: [1, 7], 6: [9, 3], 8: [7, 9], 'odd_move': [1, 3, 7, 9]}
+        computer_choice = None
+        if users_first_turn % 2 == 0:
+            random.shuffle(move_dict[users_first_turn])
+            for i in move_dict[users_first_turn]:
+                if i in reference_board:
+                    computer_choice = i
+                    break
+        elif users_first_turn in move_dict['odd_move']:
+            if 5 in reference_board:
+                computer_choice = 5
+        else:
+            if computer_symbol == 'X':
+                computer_choice = 9
+            else:
+                computer_choice = random.choice(move_dict['odd_move'])
+        replace_element(computer_choice, computer_symbol)
+        return computer_choice
 
 
 def find_winner(user_options, computer_options):
@@ -119,10 +94,10 @@ def find_winner(user_options, computer_options):
             for comp_item in computer_options:
                 if comp_item in sublist:
                     compare_computer.append(comp_item)
-        if sorted(compare_user) == sorted(sublist):
+        if sorted(compare_user) == sublist:
             print("YOU WON!")
             return True, None, None
-        if sorted(compare_computer) == sorted(sublist):
+        if sorted(compare_computer) == sublist:
             print("You LOST!")
             return True, None, None
         if len(compare_user) == 2:
@@ -140,93 +115,66 @@ def find_winner(user_options, computer_options):
 
 def select_move(com_win_move, user_win_move, computer_options, computer_symbol):
     print("Computer Turn")
-    computer_third_turn = None
     if len(com_win_move) > 0:
         replace_element(com_win_move[0], computer_symbol)
-        second_next_move, computer_third_turn = True, com_win_move[0]
-        return second_next_move, computer_third_turn
+
+        return True, com_win_move[0]
     elif len(user_win_move) > 0:
         replace_element(user_win_move[0], computer_symbol)
-        second_next_move, computer_third_turn = True, user_win_move[0]
-        return second_next_move, computer_third_turn
+
+        return True, user_win_move[0]
     else:
         for list_combo in COMBINATION:
-            win_choice = [[i for i in list_combo if i != item] for item in computer_options if item in list_combo]
+            win_choice = [[i for i in list_combo if i not in computer_options] for item in computer_options if item in list_combo]
             # print("win_choice", win_choice, list_combo)
-            if len(win_choice) > 0:
-                win_choice = win_choice[0]
-            else:
-                win_choice = win_choice
-            index = 0
-            for i in win_choice:
-                # print(i)
-                if i in reference_board:
-                    index += 1
-                    if index == len(win_choice):
-                        replace_element(i, computer_symbol)
-                        second_next_move, computer_third_turn = True, i
-                        return second_next_move, computer_third_turn
+            if win_choice and win_choice[0][-1] in reference_board:
+                replace_element(win_choice[0][-1], computer_symbol)
+
+                return True, win_choice[0][-1]
         else:
-            if computer_third_turn is None:
-                second_next_move, computer_third_turn = True, reference_board[0]
-                replace_element(reference_board[0], computer_symbol)
-                return second_next_move, computer_third_turn
+            replace_element(reference_board[0], computer_symbol)
+
+            return True, reference_board[0]
 
 
 def user_selection(position):
-    attempt = 0
-    users_choice = None
-    game_status = False
-    n = 2
-    while attempt < n:
+    max_retries = 2
+    while max_retries > 0:
         try:
             users_choice = int(input("Enter your %s position from reference board:" % position))
-        except ValueError:
-            game_status = True
-            attempt += 1
-            print("Invalid response --", n-attempt, "attempt left")
-        else:
             if users_choice in reference_board:
-                game_status = False
-                attempt = n
-                users_choice = users_choice
+                return users_choice, False
             else:
-                attempt += 1
-                print("Select from available:", reference_board, "--", n-attempt, "attempt left")
-                game_status = True
-    return users_choice, game_status
+                max_retries -= 1
+                print("Select from available:", reference_board, "Attempts left:", max_retries)
+        except ValueError:
+            max_retries -= 1
+            print("Select from available:", reference_board, "Attempts left:", max_retries)
+
+    return None, True
 
 
-def flip():
-    noughts_or_crosses = input("Choose X or O to begin:")
-    if noughts_or_crosses in ['x', 'X']:
-        user_symbol = 'X'
-        computer_symbol = 'O'
-    elif noughts_or_crosses in ['o', 'O', '0']:
-        user_symbol = 'O'
-        computer_symbol = 'X'
-    else:
-        user_symbol = None
-        computer_symbol = None
-        print("Invalid selection")
-    return user_symbol, computer_symbol
+def flip(noughts_or_crosses):
+    input_choice = {'X': 'O', 'O': 'X'}
+    computer_selection = input_choice.get(noughts_or_crosses, None)
+    print('Invalid Choice/Capitalize' if computer_selection is None else "computer selected '%s'" % computer_selection)
+    return noughts_or_crosses, computer_selection
 
 
 def play_game():
     global game_over
     while not game_over:
-        user_symbol, computer_symbol = flip()
+        user_symbol, computer_symbol = flip(input("Choose X or O to begin:"))
         if user_symbol == 'X':
             users_first_choice, game_over = user_selection('first')
             if not game_over:
                 replace_element(users_first_choice, user_symbol)
-                computer_first_turn = computer_first_choice(users_first_choice, computer_symbol)
+                computer_first_turn = computers_pick(users_first_choice, computer_symbol)
                 users_second_choice, game_over = user_selection('second')
                 if not game_over:
                     replace_element(users_second_choice, user_symbol)
-                    first_next_move, computer_second_turn = computer_second_choice(users_first_choice,
-                                                                                   users_second_choice,
-                                                                                   computer_first_turn, computer_symbol)
+                    first_next_move, computer_second_turn = computers_pick(users_first_choice, computer_symbol,
+                                                                           users_second_choice, computer_first_turn)
                     if first_next_move:
                         users_third_choice, game_over = user_selection('third')
                         if not game_over:
@@ -271,7 +219,7 @@ def play_game():
             users_first_choice, game_over = user_selection('first')
             if not game_over:
                 replace_element(users_first_choice, user_symbol)
-                computer_first_turn = computer_first_choice(users_first_choice, computer_symbol)
+                computer_first_turn = computers_pick(users_first_choice, computer_symbol)
                 users_second_choice, game_over = user_selection('second')
                 if not game_over:
                     replace_element(users_second_choice, user_symbol)
