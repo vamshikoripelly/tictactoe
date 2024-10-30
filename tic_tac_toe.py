@@ -239,7 +239,6 @@ def play_game():
                             user_option = [users_first_choice, users_second_choice, users_third_choice]
                             computer_option = [random_computer_position, computer_first_turn, computer_second_turn]
                             game_over, user_win_move, com_win_move = find_winner(user_option, computer_option)
-                            print(user_win_move, com_win_move)
                             if not game_over:
                                 second_next_move, computer_third_turn = select_move(com_win_move, user_win_move,
                                                                                     computer_option, computer_symbol)
